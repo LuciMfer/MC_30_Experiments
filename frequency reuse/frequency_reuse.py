@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from math import *
+from typing import List, Tuple
 
 # import everything from Tkinter module
 from tkinter import *
@@ -54,20 +55,28 @@ class FrequencyReuse(Tk):
 	TOP_RIGHT = (780, 20)
 	BOTTOM_RIGHT = (780, 560)
 
-	def __init__(self, cluster_size, columns=16, rows=10, edge_len=30):
+	def __init__(self, cluster_size, i: int = 1, j: int = 0, columns=16, rows=10, edge_len=30):
 		Tk.__init__(self)
-		self.textbox = None
+		self.textbox: Text
 		self.curr_angle = 330
 		self.first_click = True
 		self.reset = False
 		self.edge_len = edge_len
 		self.cluster_size = cluster_size
+		self.i = i
+		self.j = j
 		self.reuse_list = []
 		self.all_selected = False
 		self.curr_count = 0
 		self.hexagons = []
-		self.co_cell_endp = []
-		self.reuse_xy = []
+		self.co_cell_endp: List[Tuple[float, float]] = []
+		self.reuse_xy: List[Tuple[float, float]] = []
+		# Pre-declare attributes populated by cluster_reuse_calc()
+		self.hex_radius: float = 0.0
+		self.center_dist: float = 0.0
+		self.reuse_dist: float = 0.0
+		# Pre-declare attribute populated by show_lines()
+		self.line_ids: list = []
 		self.canvas = Canvas(self,
 							width=self.CANVAS_WIDTH,
 							height=self.CANVAS_HEIGHT,
@@ -94,12 +103,12 @@ class FrequencyReuse(Tk):
 			# move i^th steps
 			l_id = self.canvas.create_line(approx_center[0], approx_center[1],
 										end_xx, end_yy)
-			if j == 0:
+			if self.j == 0:
 				self.line_ids.append(l_id)
 				dist = 0
-			elif i >= j and j != 0:
+			elif self.i >= self.j and self.j != 0:
 				self.line_ids.append(l_id)
-				dist = j
+				dist = self.j
 				# rotate counter-clockwise and move j^th step
 				l_id = self.canvas.create_line(
 					end_xx, end_yy, end_xx + self.center_dist * dist *
@@ -121,7 +130,7 @@ class FrequencyReuse(Tk):
 		txt.tag_add("center", "1.0", "end")
 		self.canvas.create_window((0, 600), anchor='w', window=txt)
 		txt.config(state=DISABLED)
-		self.textbox = txt
+		self.textbox: Text = txt
 
 	def resets(self, event):
 		if event.char == 'R':
@@ -205,14 +214,14 @@ class FrequencyReuse(Tk):
 
 			for _ in range(6):
 
-				end_xx = approx_center[0] + self.center_dist * i * cos(
+				end_xx = approx_center[0] + self.center_dist * self.i * cos(
 					radians(self.curr_angle))
-				end_yy = approx_center[1] + self.center_dist * i * sin(
+				end_yy = approx_center[1] + self.center_dist * self.i * sin(
 					radians(self.curr_angle))
 
-				reuse_x = end_xx + (self.center_dist * j) * cos(
+				reuse_x = end_xx + (self.center_dist * self.j) * cos(
 					radians(self.curr_angle - 60))
-				reuse_y = end_yy + (self.center_dist * j) * sin(
+				reuse_y = end_yy + (self.center_dist * self.j) * sin(
 					radians(self.curr_angle - 60))
 
 				if not self.is_within_bound((reuse_x, reuse_y)):
@@ -223,10 +232,10 @@ class FrequencyReuse(Tk):
 					self.reset_grid()
 					break
 
-				if j == 0:
+				if self.j == 0:
 					self.reuse_list.append(
 						self.canvas.find_closest(end_xx, end_yy)[0])
-				elif i >= j and j != 0:
+				elif self.i >= self.j and self.j != 0:
 					self.reuse_list.append(
 						self.canvas.find_closest(reuse_x, reuse_y)[0])
 
@@ -263,5 +272,5 @@ if __name__ == '__main__':
 	else:
 		N = (i**2 + i * j + j**2)
 		print("N is {}".format(N))
-	freqreuse = FrequencyReuse(cluster_size=N)
+	freqreuse = FrequencyReuse(cluster_size=N, i=i, j=j)
 	freqreuse.mainloop()

@@ -1,0 +1,5 @@
+<resources>
+    <string name="location_text">Location will appear here</string>
+    <string name="btn_text">Get Location</string>
+    <string name="app_name">GPSLocationApp</string>
+</resources>
